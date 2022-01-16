@@ -1,0 +1,66 @@
+Scope and use cases
+I want to present here a case to use python pandas library to create frameworks which can be used to validate huge data generated(10GB+) in form of flat files. I have seen this as one of the common case in finance industry(or in other industries which are generating large volumes of data in flat files) where large scale data validation requirements are there and checking individual records is very important. Here are few use cases(but not restricted to) which I think may be handled using the approach I am going to discuss below:
+
+ 1. Finding out diff: There are scenario where difference between data in production and qa needs to be calculated based on certain primary key. e.g. comparing retail banking user records based on account no or no of trades took place for a given date in two different environments for a day based on certain positions.
+
+ 2. Data massaging: Applying rules on the data and run-time and perform certain validation on the data. e.g. calculating amount after applying interest based on interest rates.
+
+ 3. Validating data across files: Checking components of a particular trading position which are stores in some other file.
+
+ 4. Format validation: Validating that a certain field is populated in a certain format e.g. interest rate should be reported in form of percentage.
+
+ 5. Database validations: There are cases where you might want to validate data from flat files against db or get some information from db for certain values. For example validating certain trades which are reported are available in database or getting underlying of certain derivative from database.
+
+ 6. Post diff analysis: Once you have found out diffs, you have to analyse those manually to see if there are any kind of deviation. But in cases where these diff results are huge, manually identifying those diffs are not practical. Pandas can help with analyzing such reports quickly and help you decide future course of action.
+
+Python Pandas - brief introduction
+Pandas is a very widely use library written used by data scientists for analyzing data. Two most used data types are dataframes and series.
+
+ DataFrame - Its a in memory 2D representation of data. You can imagine that similar to excel. A dataframe may contain mixed data type.
+
+Series - Its a in memory 1D representation of data of same type.
+
+ Some key highlights of pandas library which would be widely used in the cases I have highlighted above are defined below. Take Employee.csv for examples below:
+
+ 1. Using Pandas different type of data sources such as read flat files, database, html data can be read directly into dataframe.
+
+df = pd.read_csv('Employee.csv')
+
+ 2. Simple lable based slicing. Example select rows with employees from IT department
+
+df = df[df['Department']=='IT']
+
+ 3. Desired columns can be selected easily. Ex get Names column into a series
+
+series_names = df['Name']
+
+ 4. Data aggregation using Group By operations. Ex get sum of salary by department
+
+grp = df.groupby((['Department'])['Salary'].sum()
+
+ 5. Easy merge and concat operations on multiple dataframes. Ex merging df1 and df2 on 'Key' with a inner join.
+
+merge = df1.merge(df2, on='Key', how='inner')
+
+ 6. Getting no of rows in the dataframe
+
+df.shape[0]
+
+Framework for automation
+
+
+Architecture of the framework is divided into four parts:
+
+1.    Data – Scope of this is to test large amount of data generated in flat files, ranging from thousands of records to millions of records
+
+2.    Script execution triggers – There are the points from where scripts can be triggered to perform data validation. It can be either manually for selected scripts execution, in a CICD pipeline(eg. Jenkins) or as part of batch process to do continuous testing.
+
+3.    Execution engine – This consists of two parts. Pandas library of python would be core to writing the operations to perform data validation and a test framework work-either existing or custom-would be the script organizer based the methodology which project wants to follow.
+
+4.    Results – This is last part where results would be generated in different formats which can later be used to analyze execution results.
+
+ Considerations and limitations
+1.    Based on amount of data machines with sufficient RAM should be used for execution. For example if you try to load 16 GB file in a machine with 8 GB RAM, it would take very long time to process the data or can even get stuck. Its always a good idea to have machines with enough memory(Probably twice or more than amount of data to be processed). You may also consider using GPUs to run the tests if required.
+
+2.    Above framework may be extended to be used along with different data sources for example HiveDB, RDBMS in conjunction with flat files but I have kept this discussion limited to using with flat files.
+
